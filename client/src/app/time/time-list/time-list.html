@@ -1,0 +1,117 @@
+<section class="time-page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Work tracking</p>
+      <h1>{{ view === 'team' ? 'Team Hours' : 'My Hours' }}</h1>
+      <p class="muted">Track hourly work without requiring a client, job or campaign.</p>
+    </div>
+
+    <button class="primary" type="button" (click)="openForm()" *ngIf="view === 'mine'">
+      + Add Hours
+    </button>
+  </header>
+
+  <nav class="tabs" *ngIf="isAdmin">
+    <button type="button" [class.active]="view === 'mine'" (click)="setView('mine')">My Hours</button>
+    <button type="button" [class.active]="view === 'team'" (click)="setView('team')">Team Hours</button>
+  </nav>
+
+  <div class="summary-grid">
+    <article class="summary-card">
+      <span>This week</span>
+      <strong>{{ weekHours | number:'1.0-2' }} hrs</strong>
+      <small>{{ weekValue | currency }} tracked value</small>
+    </article>
+
+    <article class="summary-card">
+      <span>This month</span>
+      <strong>{{ monthHours | number:'1.0-2' }} hrs</strong>
+      <small>{{ monthValue | currency }} tracked value</small>
+    </article>
+  </div>
+
+  <div class="error" *ngIf="error">{{ error }}</div>
+
+  <section class="entry-form" *ngIf="showForm">
+    <div class="form-heading">
+      <h2>{{ editingId ? 'Edit Hours' : 'Add Hours' }}</h2>
+      <button type="button" class="link-button" (click)="cancelEdit()">Cancel</button>
+    </div>
+
+    <div class="form-grid">
+      <label>
+        Date
+        <input type="date" [(ngModel)]="form.work_date" />
+      </label>
+
+      <label>
+        Service
+        <select [(ngModel)]="form.service_id">
+          <option *ngFor="let service of services" [ngValue]="service.id">
+            {{ service.name }} — {{ service.hourly_rate | currency }}/hr
+          </option>
+        </select>
+      </label>
+
+      <label>
+        Hours
+        <input type="number" min="0.25" step="0.25" [(ngModel)]="form.hours" />
+      </label>
+    </div>
+
+    <label class="description-field">
+      Work performed
+      <textarea
+        rows="4"
+        [(ngModel)]="form.description"
+        placeholder="Briefly describe the work completed"
+      ></textarea>
+    </label>
+
+    <div class="form-actions">
+      <button type="button" class="secondary" (click)="cancelEdit()">Cancel</button>
+      <button type="button" class="primary" (click)="save()" [disabled]="saving">
+        {{ saving ? 'Saving…' : 'Save Hours' }}
+      </button>
+    </div>
+  </section>
+
+  <div class="loading" *ngIf="loading">Loading hours…</div>
+
+  <section class="entries" *ngIf="!loading">
+    <article class="day-group" *ngFor="let group of groupedEntries()">
+      <header class="day-header">
+        <div>
+          <h2>{{ group.date | date:'EEEE, MMMM d' }}</h2>
+          <span>{{ group.hours | number:'1.0-2' }} hrs · {{ group.value | currency }}</span>
+        </div>
+      </header>
+
+      <div class="time-entry" *ngFor="let entry of group.entries">
+        <div class="entry-main">
+          <div class="entry-title">
+            <strong>{{ entry.service_name || 'Service' }}</strong>
+            <span *ngIf="view === 'team' && entry.user_name">{{ entry.user_name }}</span>
+          </div>
+          <p>{{ entry.description }}</p>
+        </div>
+
+        <div class="entry-numbers">
+          <strong>{{ entry.hours | number:'1.0-2' }} hrs</strong>
+          <span>{{ entry.hourly_rate | currency }}/hr</span>
+          <span>{{ entryValue(entry) | currency }}</span>
+        </div>
+
+        <div class="entry-actions" *ngIf="view === 'mine'">
+          <button type="button" class="link-button" (click)="edit(entry)">Edit</button>
+          <button type="button" class="link-button danger" (click)="delete(entry)">Delete</button>
+        </div>
+      </div>
+    </article>
+
+    <div class="empty" *ngIf="entries.length === 0">
+      <h2>No hours yet</h2>
+      <p>Log your first entry to start tracking work.</p>
+    </div>
+  </section>
+</section>
