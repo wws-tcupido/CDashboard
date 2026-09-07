@@ -1,0 +1,57 @@
+<section class="services-page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">Administration</p>
+      <h1>Hourly Services</h1>
+      <p>Define the services employees can select when logging time.</p>
+    </div>
+    <button type="button" class="primary" (click)="add()">+ Add Service</button>
+  </header>
+
+  <div class="error" *ngIf="error">{{ error }}</div>
+
+  <section class="service-form" *ngIf="showForm">
+    <h2>{{ editingId ? 'Edit Service' : 'Add Service' }}</h2>
+
+    <div class="form-grid">
+      <label>
+        Service name
+        <input [(ngModel)]="form.name" placeholder="Website Development" />
+      </label>
+
+      <label>
+        Hourly rate
+        <input type="number" min="0" step="0.01" [(ngModel)]="form.hourly_rate" />
+      </label>
+
+      <label class="check-label">
+        <input type="checkbox" [(ngModel)]="form.active" />
+        Active
+      </label>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="secondary" (click)="cancel()">Cancel</button>
+      <button type="button" class="primary" (click)="save()">Save Service</button>
+    </div>
+  </section>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Service</th>
+        <th>Rate</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let service of services">
+        <td>{{ service.name }}</td>
+        <td>{{ service.hourly_rate | currency }}/hr</td>
+        <td>{{ service.active ? 'Active' : 'Archived' }}</td>
+        <td><button type="button" class="link-button" (click)="edit(service)">Edit</button></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
