@@ -76,13 +76,25 @@
     </div>
   </section>
 
+  <div class="history-filter" *ngIf="entries.length > 0">
+    <label>
+      History
+      <select [(ngModel)]="selectedMonth">
+        <option value="all">All months</option>
+        <option *ngFor="let month of availableMonths" [value]="month">
+          {{ monthLabel(month) }}
+        </option>
+      </select>
+    </label>
+  </div>
+
   <div class="loading" *ngIf="loading">Loading hours…</div>
 
   <section class="entries" *ngIf="!loading">
     <article class="day-group" *ngFor="let group of groupedEntries()">
       <header class="day-header">
         <div>
-          <h2>{{ group.date | date:'EEEE, MMMM d' }}</h2>
+          <h2>{{ group.date | date:'EEEE, MMMM d, y' }}</h2>
           <span>{{ group.hours | number:'1.0-2' }} hrs · {{ group.value | currency }}</span>
         </div>
       </header>
@@ -91,7 +103,9 @@
         <div class="entry-main">
           <div class="entry-title">
             <strong>{{ entry.service_name || 'Service' }}</strong>
-            <span *ngIf="view === 'team' && entry.user_name">{{ entry.user_name }}</span>
+            <span *ngIf="entry.created_by_name || entry.user_name">
+              Logged by {{ entry.created_by_name || entry.user_name }}
+            </span>
           </div>
           <p>{{ entry.description }}</p>
         </div>
@@ -109,9 +123,10 @@
       </div>
     </article>
 
-    <div class="empty" *ngIf="entries.length === 0">
-      <h2>No hours yet</h2>
-      <p>Log your first entry to start tracking work.</p>
+    <div class="empty" *ngIf="visibleEntries.length === 0">
+      <h2>No hours for this period</h2>
+      <p *ngIf="entries.length === 0">Log your first entry to start tracking work.</p>
+      <p *ngIf="entries.length > 0">Choose another month or view all months.</p>
     </div>
   </section>
 </section>
