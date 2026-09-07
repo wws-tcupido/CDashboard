@@ -20,10 +20,11 @@ app.use('/api/reports', require('./routes/reports.routes'));
 app.use('/api/stats', require('./routes/gsc.routes'));
 app.use('/api/stats', require('./routes/ga4.routes'));
 app.use('/api/campaigns', require('./routes/campaign.routes'));
+app.use('/api/services', require('./routes/services.routes'));
+app.use('/api/time', require('./routes/time.routes'));
 app.use('/uploads', express.static('uploads'));
 app.get('/api/health', (_, res) => res.json({ ok: true }));
 
 app.listen(process.env.PORT || 5000, () =>
   console.log(`API on http://localhost:${process.env.PORT || 5000}`)
 );
-    
