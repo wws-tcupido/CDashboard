@@ -47,6 +47,14 @@ export const routes: Routes = [
         .then(m => m.CampaignListComponent)
   },
 
+  {
+    path: 'time',
+    canActivate: [AuthGuard],
+    loadComponent: () =>
+      import('./time/time-list/time-list')
+        .then(m => m.TimeListComponent)
+  },
+
   // ADMIN AREA
   {
     path: 'admin/users',
@@ -54,6 +62,14 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./admin/users/users-list/users-list')
         .then(m => m.UsersListComponent)
+  },
+
+  {
+    path: 'admin/services',
+    canActivate: [AuthGuard],
+    loadComponent: () =>
+      import('./time/service-admin/service-admin')
+        .then(m => m.ServiceAdminComponent)
   },
 
   {
@@ -87,20 +103,21 @@ export const routes: Routes = [
         .then(m => m.CampaignListComponent)
   },
   {
-  path: 'companies/:companyId/campaigns/:campaignId',
-  canActivate: [AuthGuard],
-  loadComponent: () =>
-    import('./campaigns/campaign-detail/campaign-detail')
-      .then(m => m.CampaignDetailComponent)
-},
+    path: 'companies/:companyId/campaigns/:campaignId',
+    canActivate: [AuthGuard],
+    loadComponent: () =>
+      import('./campaigns/campaign-detail/campaign-detail')
+        .then(m => m.CampaignDetailComponent)
+  },
 
-{
-  path: 'admin/companies/:companyId/campaigns/:campaignId',
-  canActivate: [AuthGuard],
-  loadComponent: () =>
-    import('./campaigns/campaign-detail/campaign-detail')
-      .then(m => m.CampaignDetailComponent)
-},
+  {
+    path: 'admin/companies/:companyId/campaigns/:campaignId',
+    canActivate: [AuthGuard],
+    loadComponent: () =>
+      import('./campaigns/campaign-detail/campaign-detail')
+        .then(m => m.CampaignDetailComponent)
+  },
+
   // fallback
   {
     path: '**',
