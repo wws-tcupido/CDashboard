@@ -50,9 +50,14 @@ router.get('/', verifyToken, requirePlatformStaff, async (req, res) => {
         te.hours,
         te.description,
         te.hourly_rate,
+        te.created_by_name,
         te.created_at,
         te.updated_at,
-        trim(concat_ws(' ', u.first_name, u.last_name)) AS user_name
+        COALESCE(
+          NULLIF(te.created_by_name, ''),
+          NULLIF(trim(concat_ws(' ', u.first_name, u.last_name)), ''),
+          u.email
+        ) AS user_name
       FROM time_entries te
       JOIN services s ON s.id = te.service_id
       JOIN users u ON u.id = te.user_id
@@ -85,10 +90,24 @@ router.post('/', verifyToken, requirePlatformStaff, async (req, res) => {
 
     const result = await pool.query(`
       INSERT INTO time_entries
-        (user_id, service_id, work_date, hours, description, hourly_rate)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING id, user_id, service_id, work_date, hours, description, hourly_rate, created_at, updated_at
+        (user_id, service_id, work_date, hours, description, hourly_rate, created_by_name)
+      SELECT
+        u.id,
+        $2,
+        $3,
+        $4,
+        $5,
+        $6,
+        COALESCE(NULLIF(trim(concat_ws(' ', u.first_name, u.last_name)), ''), u.email)
+      FROM users u
+      WHERE u.id = $1
+      RETURNING id, user_id, service_id, work_date, hours, description, hourly_rate,
+                created_by_name, created_at, updated_at
     `, [req.user.userId, serviceId, workDate, hours, description, service.hourly_rate]);
+
+    if (!result.rows.length) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -110,7 +129,7 @@ router.put('/:id', verifyToken, requirePlatformStaff, async (req, res) => {
 
   try {
     const existingResult = await pool.query(`
-      SELECT id, user_id, service_id, hourly_rate
+      SELECT id, user_id, service_id, hourly_rate, created_by_name
       FROM time_entries
       WHERE id = $1
     `, [id]);
@@ -142,7 +161,8 @@ router.put('/:id', verifyToken, requirePlatformStaff, async (req, res) => {
           hourly_rate = $5,
           updated_at = now()
       WHERE id = $6 AND user_id = $7
-      RETURNING id, user_id, service_id, work_date, hours, description, hourly_rate, created_at, updated_at
+      RETURNING id, user_id, service_id, work_date, hours, description, hourly_rate,
+                created_by_name, created_at, updated_at
     `, [serviceId, workDate, hours, description, hourlyRate, id, req.user.userId]);
 
     res.json(result.rows[0]);
@@ -163,14 +183,14 @@ router.delete('/:id', verifyToken, requirePlatformStaff, async (req, res) => {
     const result = await pool.query(`
       DELETE FROM time_entries
       WHERE id = $1 AND user_id = $2
-      RETURNING id
+      RETURNING id, created_by_name
     `, [id, req.user.userId]);
 
     if (!result.rows.length) {
       return res.status(404).json({ message: 'Time entry not found' });
     }
 
-    res.json({ success: true });
+    res.json({ success: true, deleted: result.rows[0] });
   } catch (err) {
     console.error('Error deleting time entry:', err);
     res.status(500).json({ message: 'Server error' });
