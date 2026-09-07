@@ -23,6 +23,7 @@ export class TimeListComponent implements OnInit {
   isAdmin = false;
   view: 'mine' | 'team' = 'mine';
   editingId: number | null = null;
+  selectedMonth = 'all';
 
   form: TimeEntryInput = {
     service_id: 0,
@@ -82,6 +83,7 @@ export class TimeListComponent implements OnInit {
 
   setView(view: 'mine' | 'team') {
     this.view = view;
+    this.selectedMonth = 'all';
     this.cancelEdit();
     this.loadEntries();
   }
@@ -160,6 +162,24 @@ export class TimeListComponent implements OnInit {
     this.editingId = null;
   }
 
+  get availableMonths() {
+    const months = new Set(this.entries.map(entry => entry.work_date.substring(0, 7)));
+    return Array.from(months).sort((a, b) => b.localeCompare(a));
+  }
+
+  get visibleEntries() {
+    if (this.selectedMonth === 'all') return this.entries;
+    return this.entries.filter(entry => entry.work_date.startsWith(this.selectedMonth));
+  }
+
+  monthLabel(value: string) {
+    const [year, month] = value.split('-').map(Number);
+    return new Date(year, month - 1, 1).toLocaleDateString(undefined, {
+      month: 'long',
+      year: 'numeric'
+    });
+  }
+
   get thisWeekEntries() {
     const start = this.startOfWeek(new Date());
     const end = new Date(start);
@@ -199,7 +219,7 @@ export class TimeListComponent implements OnInit {
   groupedEntries(): { date: string; entries: TimeEntry[]; hours: number; value: number }[] {
     const groups = new Map<string, TimeEntry[]>();
 
-    for (const entry of this.entries) {
+    for (const entry of this.visibleEntries) {
       const date = entry.work_date.substring(0, 10);
       groups.set(date, [...(groups.get(date) ?? []), entry]);
     }
