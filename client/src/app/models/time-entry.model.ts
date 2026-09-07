@@ -7,6 +7,7 @@ export interface TimeEntry {
   hours: number;
   description: string;
   hourly_rate: number;
+  created_by_name?: string;
   user_name?: string;
   created_at?: string;
   updated_at?: string;
