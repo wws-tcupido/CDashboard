@@ -12,6 +12,13 @@
       <li>
         <a routerLink="/campaigns">Campaigns</a>
       </li>
+      <li
+        *ngIf="
+          (user$ | async)?.platformRole === 'ADMIN' || (user$ | async)?.platformRole === 'DESIGNER'
+        "
+      >
+        <a routerLink="/time">Time</a>
+      </li>
 
       <!-- PLATFORM STAFF -->
       <li
@@ -27,6 +34,9 @@
         "
       >
         <a routerLink="/admin/companies">Admin</a>
+      </li>
+      <li *ngIf="(user$ | async)?.platformRole === 'ADMIN'">
+        <a routerLink="/admin/services">Services</a>
       </li>
 
       <li>
