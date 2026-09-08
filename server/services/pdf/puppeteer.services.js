@@ -1,9 +1,9 @@
-// services/pdf/puppeteer.service.js
 const puppeteer = require('puppeteer');
 
 async function generateSeoReportPdf({ token, baseUrl }) {
   const browser = await puppeteer.launch({
     headless: 'new',
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
 
@@ -13,16 +13,20 @@ async function generateSeoReportPdf({ token, baseUrl }) {
     await page.setCookie({
       name: 'token',
       value: token,
-      domain: 'localhost', 
-      path: '/',
+      url: baseUrl,
       httpOnly: true,
-      sameSite: 'Lax',
+      sameSite: 'Lax'
     });
 
-    await page.goto('http://localhost:4200', { waitUntil: 'networkidle0' });
-    await page.goto('http://localhost:4200/account', { waitUntil: 'networkidle0' });
-console.log('Puppeteer cwd:', process.cwd());
+    await page.goto(baseUrl, {
+      waitUntil: 'networkidle0'
+    });
 
+    await page.goto(`${baseUrl}/account`, {
+      waitUntil: 'networkidle0'
+    });
+
+    console.log('Puppeteer cwd:', process.cwd());
 
     const pdf = await page.pdf({
       format: 'A4',

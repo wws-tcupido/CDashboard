@@ -1,0 +1,71 @@
+services:
+
+  db:
+    image: postgres:18-alpine
+    container_name: cdashboard_db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: cdashboard
+      POSTGRES_USER: cdashboard
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    volumes:
+      - cdashboard_postgres:/var/lib/postgresql
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cdashboard -d cdashboard"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  api:
+    build:
+      context: ./server
+
+    container_name: cdashboard_api
+    restart: unless-stopped
+
+    env_file:
+      - ./server/.env
+
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+
+      DATABASE_URL: postgresql://cdashboard:${POSTGRES_PASSWORD}@db:5432/cdashboard
+
+      DB_SSL: "false"
+      COOKIE_SECURE: "false"
+
+      APP_URL: http://web
+
+      PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium
+
+    volumes:
+      - cdashboard_uploads:/app/uploads
+      - ./server/keys:/app/keys:ro
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+
+  web:
+    build:
+      context: ./client
+
+    container_name: cdashboard_web
+    restart: unless-stopped
+
+    ports:
+      - "8080:80"
+
+    depends_on:
+      - api
+
+
+volumes:
+  cdashboard_postgres:
+  cdashboard_uploads:

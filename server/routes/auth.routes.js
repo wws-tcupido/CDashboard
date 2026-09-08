@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const pool = require('../db');
 const verifyToken = require('../middleware/verifyToken');
+const cookieSecure = process.env.COOKIE_SECURE === 'true';
 
 /**
  * POST /auth/login
@@ -81,7 +82,7 @@ router.post('/login', async (req, res) => {
     res.cookie('token', token, {
       httpOnly: true,
       sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
+      secure: cookieSecure,
       maxAge: 15 * 60 * 1000
     });
 
@@ -113,7 +114,7 @@ router.get('/me', verifyToken, (req, res) => {
 router.post('/logout', (req, res) => {
   res.clearCookie('token', {
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production'
+    secure: cookieSecure
   });
   res.json({ message: 'logged out' });
 });

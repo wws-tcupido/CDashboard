@@ -10,7 +10,7 @@ router.get('/pdf', verifyToken, async (req, res) => {
 
     const pdf = await generateSeoReportPdf({
       token,
-      baseUrl: 'http://localhost:4200'
+      baseUrl: process.env.APP_URL || 'http://localhost:4200'
     });
 
     res.set({
